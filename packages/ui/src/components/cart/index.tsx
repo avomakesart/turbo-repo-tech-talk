@@ -1,29 +1,33 @@
 /* eslint-disable @next/next/no-img-element */
-import { Fragment } from 'react';
 import { Dialog, Transition } from '@headlessui/react';
 import { XIcon } from '@heroicons/react/outline';
-
-interface Product {
-  id: number;
-  name: string;
-  href: string;
-  color: string;
-  price: string;
-  quantity: number;
-  imageSrc: string;
-  imageAlt: string;
-}
+import { Fragment } from 'react';
+import { Product } from '../product-overview/types';
+import { useCartContext } from './use-cart-context';
 
 interface CartProps {
-  products: Product[];
   isOpen?: boolean;
-  onOpen: (value: boolean) => void;
+  cartItems?: Product[];
+  removeFromCart: (id: number) => void;
 }
 
-export const Cart: React.FC<CartProps> = ({ products, isOpen, onOpen }) => {
+export const Cart: React.FC<CartProps> = ({
+  isOpen,
+  cartItems,
+  removeFromCart,
+}) => {
+  const { closeCart } = useCartContext();
+
+  const calculateTotal = (items: Product[]) => {
+    return items.reduce(
+      (ack: number, item) => ack + Number(item.quantity) * Number(item.price),
+      0
+    );
+  };
+
   return (
     <Transition.Root show={isOpen} as={Fragment}>
-      <Dialog as='div' className='relative z-10' onClose={onOpen}>
+      <Dialog as='div' className='relative z-10' onClose={closeCart}>
         <Transition.Child
           as={Fragment}
           enter='ease-in-out duration-500'
@@ -60,7 +64,7 @@ export const Cart: React.FC<CartProps> = ({ products, isOpen, onOpen }) => {
                           <button
                             type='button'
                             className='-m-2 p-2 text-gray-400 hover:text-gray-500'
-                            onClick={() => onOpen(false)}
+                            onClick={closeCart}
                           >
                             <span className='sr-only'>Close panel</span>
                             <XIcon className='h-6 w-6' aria-hidden='true' />
@@ -74,8 +78,8 @@ export const Cart: React.FC<CartProps> = ({ products, isOpen, onOpen }) => {
                             role='list'
                             className='-my-6 divide-y divide-gray-200'
                           >
-                            {products.length > 0 ? (
-                              products.map((product) => (
+                            {cartItems && cartItems.length > 0 ? (
+                              cartItems?.map((product) => (
                                 <li key={product.id} className='flex py-6'>
                                   <div className='h-24 w-24 flex-shrink-0 overflow-hidden rounded-md border border-gray-200'>
                                     <img
@@ -94,11 +98,11 @@ export const Cart: React.FC<CartProps> = ({ products, isOpen, onOpen }) => {
                                             {product.name}{' '}
                                           </a>
                                         </h3>
-                                        <p className='ml-4'>{product.price}</p>
+                                        <p className='ml-4'>${product.price}</p>
                                       </div>
-                                      <p className='mt-1 text-sm text-gray-500'>
-                                        {product.color}
-                                      </p>
+                                      {/* <p className='mt-1 text-sm text-gray-500'>
+                                        {product.colors[0]}
+                                      </p> */}
                                     </div>
                                     <div className='flex flex-1 items-end justify-between text-sm'>
                                       <p className='text-gray-500'>
@@ -109,6 +113,9 @@ export const Cart: React.FC<CartProps> = ({ products, isOpen, onOpen }) => {
                                         <button
                                           type='button'
                                           className='font-medium text-indigo-600 hover:text-indigo-500'
+                                          onClick={() =>
+                                            removeFromCart(product.id)
+                                          }
                                         >
                                           Remove
                                         </button>
@@ -128,7 +135,9 @@ export const Cart: React.FC<CartProps> = ({ products, isOpen, onOpen }) => {
                     <div className='border-t border-gray-200 py-6 px-4 sm:px-6'>
                       <div className='flex justify-between text-base font-medium text-gray-900'>
                         <p>Subtotal</p>
-                        <p>$262.00</p>
+                        <p>
+                          ${cartItems && calculateTotal(cartItems).toFixed(2)}
+                        </p>
                       </div>
                       <p className='mt-0.5 text-sm text-gray-500'>
                         Shipping and taxes calculated at checkout.
@@ -147,7 +156,7 @@ export const Cart: React.FC<CartProps> = ({ products, isOpen, onOpen }) => {
                           <button
                             type='button'
                             className='font-medium text-indigo-600 hover:text-indigo-500'
-                            onClick={() => onOpen(false)}
+                            onClick={closeCart}
                           >
                             Continue Shopping
                             <span aria-hidden='true'> &rarr;</span>

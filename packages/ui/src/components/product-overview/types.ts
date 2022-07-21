@@ -21,8 +21,9 @@ export interface Size {
 }
 
 export interface Product {
+  id: number;
   name: string;
-  price: string;
+  price: number;
   href: string;
   breadcrumbs: BreadCrumb[];
   images: Image[];
@@ -31,6 +32,10 @@ export interface Product {
   description: string;
   highlights: string[];
   details: string;
+  imageSrc?: string;
+  imageAlt?: string;
+  quantity?: number;
+  amount?: number;
 }
 
 export interface ProductReviews {

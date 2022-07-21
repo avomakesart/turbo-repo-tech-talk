@@ -8,6 +8,8 @@ import {
   XIcon,
 } from '@heroicons/react/outline';
 import { Navigation } from './types';
+import { Product } from '../product-overview/types';
+import { useCartContext } from '../cart/use-cart-context';
 
 interface NavProps {
   navigation: Navigation;
@@ -17,19 +19,12 @@ function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ');
 }
 
-export const NavBar: React.FC<NavProps> = ({ navigation }) => {
+export const NavBar: React.FC<NavProps> = ({
+  navigation,
+}) => {
   const [open, setOpen] = useState(false);
+  const { openCart, cartQuantity } = useCartContext();
 
-  const [cartItems, setCartItems] = useState<any>(0);
-
-  useEffect(() => {
-    //@ts-ignore
-    const items =
-      typeof window !== 'undefined' && window.localStorage.getItem('items');
-    setCartItems(items);
-
-    return () => {};
-  }, [cartItems]);
 
   return (
     <div className='bg-white'>
@@ -406,17 +401,28 @@ export const NavBar: React.FC<NavProps> = ({ navigation }) => {
 
                 {/* Cart */}
                 <div className='ml-4 flow-root lg:ml-6'>
-                  <a href='#' className='group -m-2 p-2 flex items-center'>
+                  <button
+                    className='group -m-2 p-2 flex items-center'
+                    onClick={openCart}
+                  >
                     <ShoppingBagIcon
                       className='flex-shrink-0 h-6 w-6 text-gray-400 group-hover:text-gray-500'
                       aria-hidden='true'
                     />
+
                     <span className='ml-2 text-sm font-medium text-gray-700 group-hover:text-gray-800'>
-                      {cartItems}
+                      {cartQuantity}
                     </span>
+
                     <span className='sr-only'>items in cart, view bag</span>
-                  </a>
+                  </button>
                 </div>
+                {/* <Cart
+                  isOpen={isCartOpen}
+                  onOpen={() => setIsCartOpen(!isCartOpen)}
+                  cartItems={cartItems}
+                  removeFromCart={removeCartItems as any}
+                /> */}
               </div>
             </div>
           </div>

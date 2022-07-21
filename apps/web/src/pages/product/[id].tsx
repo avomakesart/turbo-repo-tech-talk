@@ -1,55 +1,51 @@
-import React, { useEffect, useState } from 'react';
-import { NavBar, ProductOverview } from 'ui';
 import { useRouter } from 'next/router';
+import React, { useEffect, useState } from 'react';
+import { ProductOverview } from 'ui';
+import { useCartContext } from '../../../../../packages/ui/src/components/cart/use-cart-context';
 import { products } from '../../utils/products';
-import { navigation } from '../../utils';
-import { ShoppingBagIcon } from '@heroicons/react/outline';
 
 interface ProductDetailsProps {}
 
-const ProductDetails: React.FC<ProductDetailsProps> = ({}) => {
-  const [filteredProduct, setFilteredProduct] = useState<any>([]);
-  const [items, setItems] = useState<any>([]);
-  const router = useRouter();
+function useLocalStorage<T>(key: string, initialValue: T | (() => T)) {
+  const [value, setValue] = useState<T>(() => {
+    const jsonValue =
+      typeof window !== 'undefined' && window.localStorage.getItem(key);
+    if (jsonValue != null) return JSON.parse(jsonValue as any);
 
-  const handleAddToCart = (clickedItem: any) => {
-    setItems((prev: any) => {
-      // 1. Is the item already added in the cart?
-      const isItemInCart = prev.find((item: any) => item.id === clickedItem.id);
-
-      if (isItemInCart) {
-        return prev.map((item: any) =>
-          item.id === clickedItem.id
-            ? { ...item, amount: item.amount + 1 }
-            : item
-        );
-      }
-      // First time the item is added
-      return [...prev, { ...clickedItem, amount: 1 }];
-    });
-  };
+    if (typeof initialValue === 'function') {
+      return (initialValue as () => T)();
+    } else {
+      return initialValue;
+    }
+  });
 
   useEffect(() => {
-    products.filter((product) => {
-      if (String(product.id).includes(router.query.id as any)) {
-        setFilteredProduct(product);
-      }
-    });
+    typeof window !== 'undefined' &&
+      window.localStorage.setItem(key, JSON.stringify(value));
+  }, [key, value]);
 
-    items.map((val: any) => {
-      return localStorage.setItem('items', val.amount as any);
-    });
+  return [value, setValue] as [typeof value, typeof setValue];
+}
 
-    return () => {};
-  }, [items, router.query.id]);
+const ProductDetails: React.FC<ProductDetailsProps> = ({}) => {
+  const router = useRouter();
+
+  const { increaseCartQuantity } = useCartContext();
+
+  const filteredProduct = products.filter(
+    (product) => String(product.id) === router.query.id
+  );
 
   return (
     <>
-      <ProductOverview
-        product={filteredProduct}
-        reviews={{ href: 'product/1', average: 4, totalCount: 117 }}
-        onAddClick={() => handleAddToCart(filteredProduct)}
-      />
+      {filteredProduct?.map((prod: any, index: number) => (
+        <ProductOverview
+          key={`${index}-${prod}`}
+          product={prod}
+          reviews={{ href: 'product/1', average: 5, totalCount: 117 }}
+          onAddClick={increaseCartQuantity}
+        />
+      ))}
     </>
   );
 };

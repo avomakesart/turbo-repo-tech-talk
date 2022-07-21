@@ -48,7 +48,7 @@ export const products = [
       'Style: DC6916-005',
     ],
     details: `Today's world offers many options. That's why we've decided to think about sustainability when creating this essential running shoe.`,
-    price: '$78',
+    price: 78,
     imageSrc:
       'https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/73593ae1-2ac0-44b3-afa5-4c2f4ec15511/calzado-crater-remixa-TVwbvv.png',
     imageAlt:
@@ -104,7 +104,7 @@ export const products = [
     ],
     details:
       'Nothing like flying, nothing more comfortable, nothing as proven.',
-    price: '$140',
+    price: 140,
     imageSrc:
       'https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/bhwrvokud9flh34cchb8/calzado-air-max-90-R0p58M.png',
     imageAlt:
@@ -162,7 +162,7 @@ export const products = [
       Originally designed for high-performance basketball, Nike Air cushioning adds lightweight, all-day comfort.
       Low-profile style offers a clean, streamlined look.
       The padded ankle area is soft and comfortable.`,
-    price: '$130',
+    price: 130,
     imageSrc:
       'https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/4f37fca8-6bce-43e7-ad07-f57ae3c13142/calzado-air-force-1-07-rWtqPn.png',
     imageAlt:
@@ -219,7 +219,7 @@ export const products = [
     ],
     details:
       'Created to adapt to the foot and designed for comfort, the Nike Air Huarache brings back a popular urban model.',
-    price: '$199',
+    price: 199,
     imageSrc:
       'https://static.nike.com/a/images/c_limit,w_592,f_auto/t_product_v1/b2cb1d7d-3bb6-439d-b4e8-344ab4b3f8a6/calzado-air-huarache-kbDR5S.png',
     imageAlt:
@@ -274,7 +274,7 @@ export const products = [
       'Ultra-soft 100% cotton',
     ],
     details: `Inspired by the human body and '90s runway aesthetics, the Air Max 95 combines incredible comfort with fast-paced style.`,
-    price: '$128',
+    price: 128,
     imageSrc:
       'https://static.nike.com/a/images/t_PDP_864_v1/f_auto,b_rgb:f5f5f5/28f56dec-f743-41da-b461-afe569681962/calzado-air-max-95-d0sQDh.png',
     imageAlt:
@@ -330,7 +330,7 @@ export const products = [
     ],
     details:
       'Built and tested by nurses, the Nike Air Zoom Pulse combines cushioning and flexible traction for a comfortable, natural feel that lasts through long shifts on dry, slippery surfaces.',
-    price: '$140',
+    price: 140,
     imageSrc:
       'https://static.nike.com/a/images/t_PDP_864_v1/f_auto,b_rgb:f5f5f5/b2828793-e7e0-4803-983d-589defcf93a2/calzado-air-zoom-pulse-9PlRZ2.png',
     imageAlt:
@@ -386,7 +386,7 @@ export const products = [
     ],
     details:
       'Bring a little art to your look with these thoughtfully designed shoes.',
-    price: '$130',
+    price: 130,
     imageSrc:
       'https://static.nike.com/a/images/t_PDP_864_v1/f_auto,b_rgb:f5f5f5/31f3ecd2-6d1a-45b9-8e41-2bc36de0551d/calzado-air-force-1-07-60-next-nature-DzxWgp.png',
     imageAlt:
@@ -442,7 +442,7 @@ export const products = [
     ],
     details:
       'Classic meets modern in this fresh take on a must-have Jordan Brand design.',
-    price: '$199',
+    price: 199,
     imageSrc:
       'https://static.nike.com/a/images/t_PDP_864_v1/f_auto,b_rgb:f5f5f5/791e2c3c-0851-4971-b2e2-eb009a0fdf1e/calzado-jordan-series-mid-MV9QRP.png',
     imageAlt:

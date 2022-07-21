@@ -11,7 +11,7 @@ function classNames(...classes: string[]) {
 interface ProductOverviewProps {
   product: Product;
   reviews: ProductReviews;
-  onAddClick: () => void;
+  onAddClick: (item: Product) => void;
 }
 
 export const ProductOverview: React.FC<ProductOverviewProps> = ({
@@ -110,7 +110,7 @@ export const ProductOverview: React.FC<ProductOverviewProps> = ({
           {/* Options */}
           <div className='mt-4 lg:mt-0 lg:row-span-3'>
             <h2 className='sr-only'>Product information</h2>
-            <p className='text-3xl text-gray-900'>{product.price}</p>
+            <p className='text-3xl text-gray-900'>${product.price}</p>
 
             {/* Reviews */}
             <div className='mt-6'>
@@ -267,7 +267,7 @@ export const ProductOverview: React.FC<ProductOverviewProps> = ({
               <button
                 type='button'
                 className='mt-10 w-full bg-indigo-600 border border-transparent rounded-md py-3 px-8 flex items-center justify-center text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
-                onClick={onAddClick}
+                onClick={() => onAddClick(product)}
               >
                 Add to bag
               </button>
