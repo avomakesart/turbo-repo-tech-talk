@@ -1,5 +1,4 @@
 /* eslint-disable @next/next/no-img-element */
-import { Fragment, useEffect, useState } from 'react';
 import { Dialog, Popover, Tab, Transition } from '@headlessui/react';
 import {
   MenuIcon,
@@ -7,9 +6,17 @@ import {
   ShoppingBagIcon,
   XIcon,
 } from '@heroicons/react/outline';
-import { Navigation } from './types';
-import { Product } from '../product-overview/types';
+import { yupResolver } from '@hookform/resolvers/yup';
+import { Fragment, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import * as yup from 'yup';
+import { useLocalStorage } from '../../hooks';
+import { AuthModal } from '../auth-modal';
 import { useCartContext } from '../cart/use-cart-context';
+import { Input } from '../input';
+import { SearchModal } from '../search-modal';
+import { useSearchModalContext } from '../search-modal/use-search-modal';
+import { Navigation } from './types';
 
 interface NavProps {
   navigation: Navigation;
@@ -19,12 +26,65 @@ function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ');
 }
 
-export const NavBar: React.FC<NavProps> = ({
-  navigation,
-}) => {
-  const [open, setOpen] = useState(false);
-  const { openCart, cartQuantity } = useCartContext();
+type IRegisterFormInputs = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+};
 
+type ILoginFormInputs = {
+  email: string;
+  password: string;
+};
+
+const registerSchema = yup.object({
+  firstName: yup.string().required(),
+  lastName: yup.string().required(),
+  email: yup.string().email().required(),
+  password: yup
+    .string()
+    .required('Please Enter your password')
+    .matches(
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#\$%\^&\*])(?=.{8,})/,
+      'Passwords needs to match the information below.'
+    ),
+});
+
+const loginSchema = yup.object({
+  email: yup.string().email('Email must be a valid email').required('Email is a required field'),
+  password: yup.string().required('Please Enter your password')
+})
+
+export const NavBar: React.FC<NavProps> = ({ navigation }) => {
+  const [open, setOpen] = useState(false);
+  const [openLoginModal, setOpenLoginModal] = useState(false);
+  const [openRegisterModal, setOpenRegisterModal] = useState(false);
+  const [filterText, setFilterText] = useState('');
+  const [inStockOnly, setInStockOnly] = useState(false);
+  const [isBannerShown, setIsBannerShown] = useLocalStorage(
+    'promotion-banner',
+    true
+  );
+
+  const { openModal: openSearchModal } = useSearchModalContext()
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<IRegisterFormInputs>({
+    resolver: yupResolver(registerSchema),
+  });
+
+  const {       register: login,
+    handleSubmit: handleLoginSubmit,
+    formState: { errors: loginErrors }, } = useForm<ILoginFormInputs>({ resolver: yupResolver(loginSchema) })
+
+  const onSubmit = (data: IRegisterFormInputs) => console.log(data);
+  const onLoginSubmit = (data: ILoginFormInputs) => console.log(data);
+
+  const { openCart, cartQuantity } = useCartContext();
 
   return (
     <div className='bg-white'>
@@ -167,20 +227,20 @@ export const NavBar: React.FC<NavProps> = ({
 
                 <div className='border-t border-gray-200 py-6 px-4 space-y-6'>
                   <div className='flow-root'>
-                    <a
-                      href='#'
+                    <span
                       className='-m-2 p-2 block font-medium text-gray-900'
+                      onClick={() => setOpenLoginModal(true)}
                     >
                       Sign in
-                    </a>
+                    </span>
                   </div>
                   <div className='flow-root'>
-                    <a
-                      href='#'
+                    <span
                       className='-m-2 p-2 block font-medium text-gray-900'
+                      onClick={() => setOpenRegisterModal(true)}
                     >
                       Create account
-                    </a>
+                    </span>
                   </div>
                 </div>
 
@@ -203,14 +263,176 @@ export const NavBar: React.FC<NavProps> = ({
         </Dialog>
       </Transition.Root>
 
+      <AuthModal
+        containerClassName='p-12'
+        isOpen={openLoginModal}
+        onOpen={setOpenLoginModal}
+      >
+   <form onSubmit={handleLoginSubmit(onLoginSubmit)}>
+          <div className='flex justify-center pb-8 '>
+            <svg
+              width='64px'
+              height='64px'
+              viewBox='0 0 32 32'
+              fill='none'
+              xmlns='http://www.w3.org/2000/svg'
+              className=''
+            >
+              <rect width='100%' height='100%' rx='16' fill='#000'></rect>
+              <path
+                fillRule='evenodd'
+                clipRule='evenodd'
+                d='M17.6482 10.1305L15.8785 7.02583L7.02979 22.5499H10.5278L17.6482 10.1305ZM19.8798 14.0457L18.11 17.1983L19.394 19.4511H16.8453L15.1056 22.5499H24.7272L19.8798 14.0457Z'
+                fill='#fff'
+              ></path>
+            </svg>
+          </div>
+          <div className='flex flex-col space-y-4'>
+          <Input
+              {...login('email')}
+              placeholder='Email'
+              isInvalid={Object(loginErrors.email).message?.length > 0}
+              errorMessage={Object(loginErrors.email)?.message}
+            />
+
+            <Input
+              type='password'
+              {...login('password')}
+              placeholder='Password'
+              isInvalid={Object(loginErrors.password).message?.length > 0}
+              errorMessage={Object(loginErrors.password)?.message}
+            />
+            <div className='pt-2 w-full flex flex-col'>
+          <button
+            type='submit'
+            className='inline-flex justify-center rounded-lg text-sm font-semibold py-2.5 px-4 bg-slate-900 text-white hover:bg-slate-700 w-full'
+          >
+            <span>Sign in to account</span>
+          </button>
+          </div>
+          <p className='mt-8 text-center'>
+            <a href='/password/reset' className='text-sm hover:underline'>
+              Forgot password?
+            </a>
+          </p>
+          </div>
+        </form>
+      </AuthModal>
+
+      <AuthModal
+        containerClassName='p-12'
+        isOpen={openRegisterModal}
+        onOpen={setOpenRegisterModal}
+      >
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <div className='flex justify-center pb-8 '>
+            <svg
+              width='64px'
+              height='64px'
+              viewBox='0 0 32 32'
+              fill='none'
+              xmlns='http://www.w3.org/2000/svg'
+              className=''
+            >
+              <rect width='100%' height='100%' rx='16' fill='#000'></rect>
+              <path
+                fillRule='evenodd'
+                clipRule='evenodd'
+                d='M17.6482 10.1305L15.8785 7.02583L7.02979 22.5499H10.5278L17.6482 10.1305ZM19.8798 14.0457L18.11 17.1983L19.394 19.4511H16.8453L15.1056 22.5499H24.7272L19.8798 14.0457Z'
+                fill='#fff'
+              ></path>
+            </svg>
+          </div>
+          <div className='flex flex-col space-y-4'>
+            <Input
+              {...register('firstName')}
+              placeholder='FirstName'
+              isInvalid={Object(errors.firstName).message?.length > 0}
+              errorMessage={Object(errors.firstName)?.message}
+            />
+
+            <Input
+              {...register('lastName')}
+              placeholder='LastName'
+              isInvalid={Object(errors.lastName).message?.length > 0}
+              errorMessage={Object(errors.lastName)?.message}
+            />
+
+            <Input
+              {...register('email')}
+              placeholder='Email'
+              isInvalid={Object(errors.email).message?.length > 0}
+              errorMessage={Object(errors.email)?.message}
+            />
+
+            <Input
+              type='password'
+              {...register('password')}
+              placeholder='Password'
+              isInvalid={Object(errors.password).message?.length > 0}
+              errorMessage={Object(errors.password)?.message}
+            />
+
+            <span className='text-accent-8'>
+              <span className='inline-block align-middle '>
+                <svg
+                  viewBox='0 0 24 24'
+                  width='15'
+                  height='15'
+                  stroke='currentColor'
+                  strokeWidth='1.5'
+                  strokeLinecap='round'
+                  strokeLinejoin='round'
+                  fill='none'
+                  shapeRendering='geometricPrecision'
+                >
+                  <circle cx='12' cy='12' r='10' fill='transparent'></circle>
+                  <path d='M12 8v4' stroke='currentColor'></path>
+                  <path d='M12 16h.01' stroke='currentColor'></path>
+                </svg>
+              </span>
+              <span className='leading-6 text-sm ml-1'>
+                <strong>Info</strong>
+                {`:`} Passwords must be longer than 7 chars and include one
+                number, one uppercase, one lowercase and one symbol.{' '}
+              </span>
+            </span>
+            <div className='pt-2 w-full flex flex-col'>
+              <button
+                type='submit'
+                className='inline-flex justify-center rounded-lg text-sm font-semibold py-2.5 px-4 bg-slate-900 text-white hover:bg-slate-700 w-full'
+              >
+                <span>Sign Up</span>
+              </button>
+            </div>
+            <p className='mt-8 text-center'>
+              Do you have an account?
+              <a
+                href='/password/reset'
+                className='text-sm font-bold ml-2 hover:underline'
+              >
+                Login
+              </a>
+            </p>
+          </div>
+        </form>
+      </AuthModal>
+
       <header className='relative bg-white'>
-        <p className='bg-indigo-600 h-10 flex items-center justify-center text-sm font-medium text-white px-4 sm:px-6 lg:px-8'>
-          Get free delivery on orders over $100
-        </p>
+        {isBannerShown && (
+          <div className='bg-indigo-600 h-10 flex items-center justify-center text-sm font-medium text-white px-4 sm:px-6 lg:px-8'>
+            <p className='ml-auto text-sm font-medium text-white'>
+              Get free delivery on orders over $100
+            </p>
+            <button className='ml-auto' onClick={() => setIsBannerShown(false)}>
+              <XIcon className='w-5 h-5 text-sm font-medium text-white' />{' '}
+            </button>
+          </div>
+        )}
 
         <nav
           aria-label='Top'
-          className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'
+          className='max-w-full mx-auto px-4 sm:px-6 lg:px-8'
         >
           <div className='border-b border-gray-200'>
             <div className='h-16 flex items-center'>
@@ -264,7 +486,7 @@ export const NavBar: React.FC<NavProps> = ({
                             leaveFrom='opacity-100'
                             leaveTo='opacity-0'
                           >
-                            <Popover.Panel className='absolute top-full inset-x-0 text-sm text-gray-500'>
+                            <Popover.Panel className='absolute top-full z-10 inset-x-0 text-sm text-gray-500'>
                               {/* Presentational element used to render the bottom shadow, if we put the shadow on the actual panel it pokes out the top, so we use this shorter element to hide the top of the shadow */}
                               <div
                                 className='absolute inset-0 top-1/2 bg-white shadow'
@@ -361,19 +583,19 @@ export const NavBar: React.FC<NavProps> = ({
 
               <div className='ml-auto flex items-center'>
                 <div className='hidden lg:flex lg:flex-1 lg:items-center lg:justify-end lg:space-x-6'>
-                  <a
-                    href='#'
-                    className='text-sm font-medium text-gray-700 hover:text-gray-800'
+                  <span
+                    onClick={() => setOpenLoginModal(true)}
+                    className='text-sm font-medium text-gray-700 cursor-pointer hover:text-gray-800'
                   >
                     Sign in
-                  </a>
+                  </span>
                   <span className='h-6 w-px bg-gray-200' aria-hidden='true' />
-                  <a
-                    href='#'
-                    className='text-sm font-medium text-gray-700 hover:text-gray-800'
+                  <span
+                    onClick={() => setOpenRegisterModal(true)}
+                    className='text-sm font-medium text-gray-700 cursor-pointer hover:text-gray-800'
                   >
                     Create account
-                  </a>
+                  </span>
                 </div>
 
                 <div className='hidden lg:ml-8 lg:flex'>
@@ -393,10 +615,10 @@ export const NavBar: React.FC<NavProps> = ({
 
                 {/* Search */}
                 <div className='flex lg:ml-6'>
-                  <a href='#' className='p-2 text-gray-400 hover:text-gray-500'>
+                  <span onClick={openSearchModal} className='p-2 text-gray-400 cursor-pointer hover:text-gray-500'>
                     <span className='sr-only'>Search</span>
                     <SearchIcon className='w-6 h-6' aria-hidden='true' />
-                  </a>
+                  </span>
                 </div>
 
                 {/* Cart */}
@@ -411,18 +633,12 @@ export const NavBar: React.FC<NavProps> = ({
                     />
 
                     <span className='ml-2 text-sm font-medium text-gray-700 group-hover:text-gray-800'>
-                      {cartQuantity}
+                      {String(cartQuantity)}
                     </span>
 
                     <span className='sr-only'>items in cart, view bag</span>
                   </button>
                 </div>
-                {/* <Cart
-                  isOpen={isCartOpen}
-                  onOpen={() => setIsCartOpen(!isCartOpen)}
-                  cartItems={cartItems}
-                  removeFromCart={removeCartItems as any}
-                /> */}
               </div>
             </div>
           </div>

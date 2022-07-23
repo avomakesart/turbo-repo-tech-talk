@@ -1,8 +1,11 @@
 /* eslint-disable @next/next/no-img-element */
 import { RadioGroup } from '@headlessui/react';
-import { StarIcon } from '@heroicons/react/solid';
+import { StarIcon, CheckCircleIcon } from '@heroicons/react/solid';
 import React, { useState } from 'react';
-import { Product, ProductReviews } from './types';
+import { Product, ProductReviews, Color, Size } from './types';
+import toast from 'react-hot-toast';
+import { useRouter } from 'next/router';
+import { useCartContext } from '../cart/use-cart-context';
 
 function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(' ');
@@ -19,8 +22,40 @@ export const ProductOverview: React.FC<ProductOverviewProps> = ({
   reviews,
   onAddClick,
 }) => {
-  const [selectedColor, setSelectedColor] = useState();
-  const [selectedSize, setSelectedSize] = useState();
+  const [selectedColor, setSelectedColor] = useState<Color[]>();
+  const [selectedSize, setSelectedSize] = useState<Size[]>();
+  
+  const { openCart } = useCartContext();
+
+  const handleAddToBag = (item: Product) => {    
+    const customItem = {
+      ...item,
+      colors: selectedColor as Color[],
+      sizes: selectedSize as Size[],
+    };
+    onAddClick(customItem);
+    toast.success(
+      (t) => {
+        return (
+          <div className='flex flex-col -mt-[0.3rem]'>
+            1 Item added
+            <button
+              onClick={() => {
+                openCart(), toast.dismiss(t.id);
+              }}
+              className='w-full mt-5 bg-indigo-600 border border-transparent rounded-md py-3 px-8 flex items-center justify-center text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
+            >
+              View your cart
+            </button>
+          </div>
+        );
+      },
+      {
+        position: 'top-right',
+        style: { alignItems: 'flex-start' },
+      }
+    );
+  };
 
   return (
     <div className='bg-white'>
@@ -267,7 +302,7 @@ export const ProductOverview: React.FC<ProductOverviewProps> = ({
               <button
                 type='button'
                 className='mt-10 w-full bg-indigo-600 border border-transparent rounded-md py-3 px-8 flex items-center justify-center text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500'
-                onClick={() => onAddClick(product)}
+                onClick={() => handleAddToBag(product)}
               >
                 Add to bag
               </button>

@@ -2,7 +2,6 @@ import { createContext, ReactNode, useContext, useState } from 'react';
 import { Cart } from '.';
 import { useLocalStorage } from '../../hooks';
 import { Product } from '../product-overview/types';
-import { AppProps } from 'next/app';
 
 type CartProviderProps = {
   children: ReactNode;
@@ -13,8 +12,8 @@ type CartContext = {
   closeCart: () => void;
   getItemQuantity: (id: number) => number;
   increaseCartQuantity: (product: Product) => void;
-  decreaseCartQuantity: (id: number) => void;
-  removeFromCart: (id: number) => void;
+  decreaseCartQuantity: (id: number, color: string) => void;
+  removeFromCart: (id: number, color: string, name: string) => void;
   cartQuantity: number;
   cartItems: Product[];
 };
@@ -40,15 +39,29 @@ export function CartProvider({ children }: CartProviderProps) {
   function getItemQuantity(id: number) {
     return cartItems.find((item) => item.id === id)?.quantity || 0;
   }
+
   function increaseCartQuantity(product: Product) {
     setCartItems((prev) => {
+      const existingCartItemIndex = prev.findIndex((item) => {
+        return (
+          item.id === product.id &&
+          Object(item.colors).name === Object(product.colors).name
+        );
+      });
       // 1. Is the item already added in the cart?
-      const isItemInCart = prev.find((item) => item.id === product.id);
+      const isItemInCart = prev.findIndex((item) => item.id === product.id);
+      const isItemColorInCart = prev.findIndex(
+        (item) => Object(item.colors).name === Object(product.colors).name
+      );
 
-      if (isItemInCart) {
+      if (existingCartItemIndex > -1) {
         return prev.map((item) =>
-          item.id === product.id
-            ? { ...item, quantity: Number(item.quantity) + 1 }
+          item.id === product.id &&
+          Object(item.colors).name === Object(product.colors).name
+            ? {
+                ...item,
+                quantity: Number(item.quantity) + 1,
+              }
             : item
         );
       }
@@ -56,10 +69,10 @@ export function CartProvider({ children }: CartProviderProps) {
       return [...prev, { ...product, quantity: 1 }];
     });
   }
-  function decreaseCartQuantity(id: number) {
+  function decreaseCartQuantity(id: number, color: string) {
     setCartItems((prev) =>
       prev.reduce((ack, item) => {
-        if (item.id === id) {
+        if (item.id === id && Object(Object(item.colors)).name === color) {
           if (item.amount === 1) return ack;
           return [...ack, { ...item, quantity: Number(item.quantity) - 1 }];
         } else {
@@ -68,9 +81,16 @@ export function CartProvider({ children }: CartProviderProps) {
       }, [] as Product[])
     );
   }
-  function removeFromCart(id: number) {
-    setCartItems((currItems) => {
-      return currItems.filter((item) => item.id !== id);
+
+  function removeFromCart(id: number, color: string, name: string) {
+    console.log('id from cart:', id, 'color from cart: ', color);
+
+    const cartItem = `${id}-${name}-${color}`;
+    setCartItems((prev) => {
+      return prev.filter(
+        (item) =>
+          `${item.id}-${item.name}-${Object(item.colors).name}` !== cartItem
+      );
     });
   }
 
@@ -91,8 +111,8 @@ export function CartProvider({ children }: CartProviderProps) {
 
       <Cart
         isOpen={isOpen}
-        removeFromCart={removeFromCart}
-        cartItems={cartItems}
+        // removeFromCart={removeFromCart}
+        // cartItems={cartItems}
       />
     </CartContext.Provider>
   );

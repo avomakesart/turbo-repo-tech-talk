@@ -1,22 +1,16 @@
 /* eslint-disable @next/next/no-img-element */
 import { Dialog, Transition } from '@headlessui/react';
 import { XIcon } from '@heroicons/react/outline';
+import NextLink from 'next/link';
 import { Fragment } from 'react';
 import { Product } from '../product-overview/types';
 import { useCartContext } from './use-cart-context';
-
 interface CartProps {
   isOpen?: boolean;
-  cartItems?: Product[];
-  removeFromCart: (id: number) => void;
 }
 
-export const Cart: React.FC<CartProps> = ({
-  isOpen,
-  cartItems,
-  removeFromCart,
-}) => {
-  const { closeCart } = useCartContext();
+export const Cart: React.FC<CartProps> = ({ isOpen }) => {
+  const { closeCart, cartItems, removeFromCart } = useCartContext();
 
   const calculateTotal = (items: Product[]) => {
     return items.reduce(
@@ -79,8 +73,20 @@ export const Cart: React.FC<CartProps> = ({
                             className='-my-6 divide-y divide-gray-200'
                           >
                             {cartItems && cartItems.length > 0 ? (
-                              cartItems?.map((product) => (
-                                <li key={product.id} className='flex py-6'>
+                              cartItems?.map((product, index) => (
+                                <li
+                                  key={`${product.id}-${
+                                    product.name
+                                  }-number-${index}-color-${
+                                    Object(product.colors).name
+                                  }`}
+                                  id={`${product.id}-${
+                                    product.name
+                                  }-number-${index}-color-${
+                                    Object(product.colors).name
+                                  }`}
+                                  className='flex py-6'
+                                >
                                   <div className='h-24 w-24 flex-shrink-0 overflow-hidden rounded-md border border-gray-200'>
                                     <img
                                       src={product.imageSrc}
@@ -93,16 +99,16 @@ export const Cart: React.FC<CartProps> = ({
                                     <div>
                                       <div className='flex justify-between text-base font-medium text-gray-900'>
                                         <h3>
-                                          <a href={product.href}>
-                                            {' '}
-                                            {product.name}{' '}
-                                          </a>
+                                          <NextLink href={product.href}>
+                                            {product.name}
+                                          </NextLink>
                                         </h3>
                                         <p className='ml-4'>${product.price}</p>
                                       </div>
-                                      {/* <p className='mt-1 text-sm text-gray-500'>
-                                        {product.colors[0]}
-                                      </p> */}
+
+                                      <p className='mt-1 text-sm text-gray-500'>
+                                        {Object(product.colors).name}
+                                      </p>
                                     </div>
                                     <div className='flex flex-1 items-end justify-between text-sm'>
                                       <p className='text-gray-500'>
@@ -114,7 +120,11 @@ export const Cart: React.FC<CartProps> = ({
                                           type='button'
                                           className='font-medium text-indigo-600 hover:text-indigo-500'
                                           onClick={() =>
-                                            removeFromCart(product.id)
+                                            removeFromCart(
+                                              product.id,
+                                              Object(product.colors).name,
+                                              product.name
+                                            )
                                           }
                                         >
                                           Remove
