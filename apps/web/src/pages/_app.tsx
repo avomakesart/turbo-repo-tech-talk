@@ -1,17 +1,27 @@
 import type { AppProps } from 'next/app';
-import { CartProvider, NavBar, SearchModalProvider } from 'ui';
+import { Toaster } from 'react-hot-toast';
+import {
+  CartProvider,
+  CountrySelectorProvider,
+  ModalProvider,
+  NavBar,
+  SearchModalProvider,
+} from 'ui';
 import '../styles/globals.css';
 import { navigation } from '../utils';
-import { Toaster } from 'react-hot-toast';
 
 export default function WebApp({ Component, pageProps }: AppProps) {
   return (
-    <SearchModalProvider>
-    <CartProvider>
-      <Toaster />
-      <NavBar navigation={navigation} />
-      <Component {...pageProps} />
-    </CartProvider>
-    </SearchModalProvider>
+    <CountrySelectorProvider>
+      <SearchModalProvider>
+        <ModalProvider>
+        <CartProvider>
+          <Toaster />
+          <NavBar navigation={navigation} />
+          <Component {...pageProps} />
+        </CartProvider>
+        </ModalProvider>
+      </SearchModalProvider>
+    </CountrySelectorProvider>
   );
 }

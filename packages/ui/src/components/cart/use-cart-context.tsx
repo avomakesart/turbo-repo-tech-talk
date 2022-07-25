@@ -49,11 +49,6 @@ export function CartProvider({ children }: CartProviderProps) {
         );
       });
       // 1. Is the item already added in the cart?
-      const isItemInCart = prev.findIndex((item) => item.id === product.id);
-      const isItemColorInCart = prev.findIndex(
-        (item) => Object(item.colors).name === Object(product.colors).name
-      );
-
       if (existingCartItemIndex > -1) {
         return prev.map((item) =>
           item.id === product.id &&
@@ -109,11 +104,7 @@ export function CartProvider({ children }: CartProviderProps) {
     >
       {children}
 
-      <Cart
-        isOpen={isOpen}
-        // removeFromCart={removeFromCart}
-        // cartItems={cartItems}
-      />
+      <Cart isOpen={isOpen} />
     </CartContext.Provider>
   );
 }

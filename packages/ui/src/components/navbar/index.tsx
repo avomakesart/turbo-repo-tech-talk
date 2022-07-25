@@ -14,9 +14,11 @@ import { useLocalStorage } from '../../hooks';
 import { AuthModal } from '../auth-modal';
 import { useCartContext } from '../cart/use-cart-context';
 import { Input } from '../input';
-import { SearchModal } from '../search-modal';
 import { useSearchModalContext } from '../search-modal/use-search-modal';
 import { Navigation } from './types';
+import { useCountrySelectorContext } from '../country-selector/use-currency-selector';
+import { Modal } from '../modal';
+import { useModalContext } from '../modal/use-modal-context';
 
 interface NavProps {
   navigation: Navigation;
@@ -52,22 +54,42 @@ const registerSchema = yup.object({
 });
 
 const loginSchema = yup.object({
-  email: yup.string().email('Email must be a valid email').required('Email is a required field'),
-  password: yup.string().required('Please Enter your password')
-})
+  email: yup
+    .string()
+    .email('Email must be a valid email')
+    .required('Email is a required field'),
+  password: yup.string().required('Please Enter your password'),
+});
 
 export const NavBar: React.FC<NavProps> = ({ navigation }) => {
   const [open, setOpen] = useState(false);
-  const [openLoginModal, setOpenLoginModal] = useState(false);
-  const [openRegisterModal, setOpenRegisterModal] = useState(false);
-  const [filterText, setFilterText] = useState('');
-  const [inStockOnly, setInStockOnly] = useState(false);
   const [isBannerShown, setIsBannerShown] = useLocalStorage(
     'promotion-banner',
     true
   );
 
-  const { openModal: openSearchModal } = useSearchModalContext()
+  const { openModal: openSearchModal } = useSearchModalContext();
+  const { openCart, cartQuantity } = useCartContext();
+  const { openModal: openCountryModal, setModalId: setCountryModalId } =
+    useModalContext();
+  const { openModal: openRegisterModal, setModalId } = useModalContext();
+  const { openModal: openSignInModal, setModalId: setSignInModalId } =
+    useModalContext();
+
+  const handleOpenSignInModal = (value: string) => {
+    setSignInModalId(value);
+    openSignInModal();
+  };
+
+  const handleOpenRegisterModal = (value: string) => {
+    setModalId(value);
+    openRegisterModal();
+  };
+
+  const handleOpenCountryModal = (value: string) => {
+    setCountryModalId(value);
+    openCountryModal();
+  };
 
   const {
     register,
@@ -77,14 +99,14 @@ export const NavBar: React.FC<NavProps> = ({ navigation }) => {
     resolver: yupResolver(registerSchema),
   });
 
-  const {       register: login,
+  const {
+    register: login,
     handleSubmit: handleLoginSubmit,
-    formState: { errors: loginErrors }, } = useForm<ILoginFormInputs>({ resolver: yupResolver(loginSchema) })
+    formState: { errors: loginErrors },
+  } = useForm<ILoginFormInputs>({ resolver: yupResolver(loginSchema) });
 
   const onSubmit = (data: IRegisterFormInputs) => console.log(data);
   const onLoginSubmit = (data: ILoginFormInputs) => console.log(data);
-
-  const { openCart, cartQuantity } = useCartContext();
 
   return (
     <div className='bg-white'>
@@ -113,7 +135,7 @@ export const NavBar: React.FC<NavProps> = ({ navigation }) => {
               leaveFrom='translate-x-0'
               leaveTo='-translate-x-full'
             >
-              <Dialog.Panel className='relative max-w-xs w-full bg-white shadow-xl pb-12 flex flex-col overflow-y-auto'>
+              <Dialog.Panel className='relative max-w-md w-full bg-white shadow-xl pb-12 flex flex-col overflow-y-auto'>
                 <div className='px-4 pt-5 pb-2 flex'>
                   <button
                     type='button'
@@ -229,7 +251,7 @@ export const NavBar: React.FC<NavProps> = ({ navigation }) => {
                   <div className='flow-root'>
                     <span
                       className='-m-2 p-2 block font-medium text-gray-900'
-                      onClick={() => setOpenLoginModal(true)}
+                      onClick={() => handleOpenSignInModal('sign-in')}
                     >
                       Sign in
                     </span>
@@ -237,7 +259,7 @@ export const NavBar: React.FC<NavProps> = ({ navigation }) => {
                   <div className='flow-root'>
                     <span
                       className='-m-2 p-2 block font-medium text-gray-900'
-                      onClick={() => setOpenRegisterModal(true)}
+                      onClick={() => handleOpenRegisterModal('create-account')}
                     >
                       Create account
                     </span>
@@ -245,7 +267,10 @@ export const NavBar: React.FC<NavProps> = ({ navigation }) => {
                 </div>
 
                 <div className='border-t border-gray-200 py-6 px-4'>
-                  <a href='#' className='-m-2 p-2 flex items-center'>
+                  <span
+                    onClick={() => handleOpenCountryModal('country')}
+                    className='-m-2 p-2 cursor-pointer flex items-center'
+                  >
                     <img
                       src='https://tailwindui.com/img/flags/flag-canada.svg'
                       alt=''
@@ -255,7 +280,7 @@ export const NavBar: React.FC<NavProps> = ({ navigation }) => {
                       CAD
                     </span>
                     <span className='sr-only'>, change currency</span>
-                  </a>
+                  </span>
                 </div>
               </Dialog.Panel>
             </Transition.Child>
@@ -263,12 +288,8 @@ export const NavBar: React.FC<NavProps> = ({ navigation }) => {
         </Dialog>
       </Transition.Root>
 
-      <AuthModal
-        containerClassName='p-12'
-        isOpen={openLoginModal}
-        onOpen={setOpenLoginModal}
-      >
-   <form onSubmit={handleLoginSubmit(onLoginSubmit)}>
+      <Modal modalId='sign-in' containerClassName='p-12'>
+        <form onSubmit={handleLoginSubmit(onLoginSubmit)}>
           <div className='flex justify-center pb-8 '>
             <svg
               width='64px'
@@ -288,7 +309,7 @@ export const NavBar: React.FC<NavProps> = ({ navigation }) => {
             </svg>
           </div>
           <div className='flex flex-col space-y-4'>
-          <Input
+            <Input
               {...login('email')}
               placeholder='Email'
               isInvalid={Object(loginErrors.email).message?.length > 0}
@@ -303,27 +324,23 @@ export const NavBar: React.FC<NavProps> = ({ navigation }) => {
               errorMessage={Object(loginErrors.password)?.message}
             />
             <div className='pt-2 w-full flex flex-col'>
-          <button
-            type='submit'
-            className='inline-flex justify-center rounded-lg text-sm font-semibold py-2.5 px-4 bg-slate-900 text-white hover:bg-slate-700 w-full'
-          >
-            <span>Sign in to account</span>
-          </button>
-          </div>
-          <p className='mt-8 text-center'>
-            <a href='/password/reset' className='text-sm hover:underline'>
-              Forgot password?
-            </a>
-          </p>
+              <button
+                type='submit'
+                className='inline-flex justify-center rounded-lg text-sm font-semibold py-2.5 px-4 bg-slate-900 text-white hover:bg-slate-700 w-full'
+              >
+                <span>Sign in to account</span>
+              </button>
+            </div>
+            <p className='mt-8 text-center'>
+              <a href='/password/reset' className='text-sm hover:underline'>
+                Forgot password?
+              </a>
+            </p>
           </div>
         </form>
-      </AuthModal>
+      </Modal>
 
-      <AuthModal
-        containerClassName='p-12'
-        isOpen={openRegisterModal}
-        onOpen={setOpenRegisterModal}
-      >
+      <Modal modalId='create-account' containerClassName='p-12'>
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className='flex justify-center pb-8 '>
             <svg
@@ -416,7 +433,11 @@ export const NavBar: React.FC<NavProps> = ({ navigation }) => {
             </p>
           </div>
         </form>
-      </AuthModal>
+      </Modal>
+
+      <Modal modalId='country' title='Hello dude'>
+        <span>country input works dude</span>
+      </Modal>
 
       <header className='relative bg-white'>
         {isBannerShown && (
@@ -584,14 +605,14 @@ export const NavBar: React.FC<NavProps> = ({ navigation }) => {
               <div className='ml-auto flex items-center'>
                 <div className='hidden lg:flex lg:flex-1 lg:items-center lg:justify-end lg:space-x-6'>
                   <span
-                    onClick={() => setOpenLoginModal(true)}
+                    onClick={() => handleOpenSignInModal('sign-in')}
                     className='text-sm font-medium text-gray-700 cursor-pointer hover:text-gray-800'
                   >
                     Sign in
                   </span>
                   <span className='h-6 w-px bg-gray-200' aria-hidden='true' />
                   <span
-                    onClick={() => setOpenRegisterModal(true)}
+                    onClick={() => handleOpenRegisterModal('create-account')}
                     className='text-sm font-medium text-gray-700 cursor-pointer hover:text-gray-800'
                   >
                     Create account
@@ -599,9 +620,9 @@ export const NavBar: React.FC<NavProps> = ({ navigation }) => {
                 </div>
 
                 <div className='hidden lg:ml-8 lg:flex'>
-                  <a
-                    href='#'
-                    className='text-gray-700 hover:text-gray-800 flex items-center'
+                  <span
+                    onClick={() => handleOpenCountryModal('country')}
+                    className='text-gray-700 hover:text-gray-800 cursor-pointer flex items-center'
                   >
                     <img
                       src='https://tailwindui.com/img/flags/flag-canada.svg'
@@ -610,12 +631,15 @@ export const NavBar: React.FC<NavProps> = ({ navigation }) => {
                     />
                     <span className='ml-3 block text-sm font-medium'>CAD</span>
                     <span className='sr-only'>, change currency</span>
-                  </a>
+                  </span>
                 </div>
 
                 {/* Search */}
                 <div className='flex lg:ml-6'>
-                  <span onClick={openSearchModal} className='p-2 text-gray-400 cursor-pointer hover:text-gray-500'>
+                  <span
+                    onClick={openSearchModal}
+                    className='p-2 text-gray-400 cursor-pointer hover:text-gray-500'
+                  >
                     <span className='sr-only'>Search</span>
                     <SearchIcon className='w-6 h-6' aria-hidden='true' />
                   </span>

@@ -4,6 +4,7 @@ import { XIcon } from '@heroicons/react/outline';
 import { useRouter } from 'next/router';
 import { Fragment, useEffect, useState } from 'react';
 import { Product } from '../product-overview/types';
+import { SearchBar } from '../search-bar';
 import { products } from './products';
 import { useSearchModalContext } from './use-search-modal';
 
@@ -14,54 +15,10 @@ interface SearchModalProps {
   closable?: boolean;
 }
 
-function SearchBar({
-  filterText,
-  inStockOnly,
-  onFilterTextChange,
-  onInStockOnlyChange,
-}: {
-  filterText: string;
-  inStockOnly: boolean;
-  onFilterTextChange: (value: string) => void;
-  onInStockOnlyChange: (value: boolean) => void;
-}) {
-  // className='flex items-center w-72 text-left space-x-3 px-4 h-12 bg-white ring-1 ring-slate-900/10 hover:ring-slate-300 focus:outline-none focus:ring-2 focus:ring-sky-500 shadow-sm rounded-lg text-slate-400 dark:bg-slate-800 dark:ring-0 dark:text-slate-300 dark:highlight-white/5 dark:hover:bg-slate-700'
-  return (
-    <form className='mt-6'>
-      <div className='space-y-4'>
-        <input
-          type='text'
-          value={filterText}
-          placeholder='Search...'
-          onChange={(e) => onFilterTextChange(e.target.value)}
-          className='flex items-center w-full text-left space-x-3 px-4 h-12 bg-white ring-1 ring-slate-900/10 hover:ring-slate-300 focus:outline-none focus:ring-2 focus:ring-sky-500 shadow-sm rounded-lg text-slate-400'
-        />
-        <div className='flex items-start'>
-          <div className='flex items-center h-5'>
-            <input
-              id='comments'
-              name='comments'
-              type='checkbox'
-              className='focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded'
-              checked={inStockOnly}
-              onChange={(e) => onInStockOnlyChange(e.target.checked)}
-            />
-          </div>
-          <div className='ml-3 text-sm'>
-            <label htmlFor='inStock' className='font-medium text-gray-700'>
-              In Stock
-            </label>
-            <p className='text-gray-500'>Only show products in stock.</p>
-          </div>
-        </div>
-      </div>
-    </form>
-  );
-}
-
 function ProductItem({ product }: { product: Product }) {
   const router = useRouter();
   const { closeModal } = useSearchModalContext();
+
   return (
     <li className='flex py-6'>
       <div
@@ -89,6 +46,13 @@ function ProductItem({ product }: { product: Product }) {
               {product.name}
             </h3>
             <p className='ml-4'>${product.price}</p>
+          </div>
+          <div className='mt-2 text-sm flex space-x-2'>
+            {product.colors.map((color) => (
+              <div
+                className={`rounded-full border borer-gray-200 w-6 h-6 ${color.class}`}
+              />
+            ))}
           </div>
         </div>
       </div>
